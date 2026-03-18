@@ -69,7 +69,7 @@ export async function POST(req: Request) {
   };
 
   const geminiRes = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=${apiKey}&alt=sse`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent?key=${apiKey}&alt=sse`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
