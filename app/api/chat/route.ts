@@ -3,6 +3,7 @@ import { topics } from "@/lib/topics";
 const RATE_LIMIT = {
   maxRequestsPerHour: 20,
   maxMessagesPerConvo: 15,
+  maxOutputTokens: 1200,
 };
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -62,7 +63,7 @@ export async function POST(req: Request) {
     system_instruction: { parts: [{ text: topic.systemPrompt }] },
     contents,
     generationConfig: {
-      maxOutputTokens: 600,
+      maxOutputTokens: RATE_LIMIT.maxOutputTokens,
       temperature: 0.7,
     },
   };
