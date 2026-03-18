@@ -13,17 +13,18 @@ export default function ChatPage() {
   const topic = topics.find((t) => t.id === topicId);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading, append } =
+  const { messages, input, handleInputChange, handleSubmit, isLoading, append, error } =
     useChat({
       api: "/api/chat",
       body: { topicId },
+      onError: (e) => console.error("Chat error:", e),
     });
 
   useEffect(() => {
     if (topic && messages.length === 0) {
       append({
         role: "user",
-        content: `__init__`,
+        content: `שלום, אני צריך עזרה עם: ${topic.title}`,
       });
     }
   }, []);
@@ -35,7 +36,7 @@ export default function ChatPage() {
   if (!topic) return null;
 
   const visibleMessages = messages.filter(
-    (m) => !(m.role === "user" && m.content === "__init__")
+    (m) => !(m.role === "user" && m.content.startsWith("שלום, אני צריך עזרה עם:"))
   );
 
   return (
@@ -113,6 +114,13 @@ export default function ChatPage() {
                 <span className="dot-2 w-2 h-2 rounded-full" style={{ background: topic.color }} />
                 <span className="dot-3 w-2 h-2 rounded-full" style={{ background: topic.color }} />
               </div>
+            </div>
+          </div>
+        )}
+        {error && (
+          <div className="flex justify-center">
+            <div className="bg-red-50 border border-red-200 text-red-600 text-xs rounded-xl px-4 py-2 max-w-sm text-center">
+              ⚠️ שגיאה: {error.message || "לא הצלחנו להתחבר. בדקי את הגדרות ה-API."}
             </div>
           </div>
         )}
