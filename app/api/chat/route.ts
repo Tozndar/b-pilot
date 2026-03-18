@@ -61,12 +61,20 @@ export async function POST(req: Request) {
     return new Response("Topic not found", { status: 404 });
   }
 
-  const result = streamText({
-    model: google("gemini-1.5-flash"),
-    system: topic.systemPrompt,
-    messages,
-    maxTokens: RATE_LIMIT.maxOutputTokens,
-  });
+  try {
+    const result = streamText({
+      model: google("gemini-1.5-flash-latest"),
+      system: topic.systemPrompt,
+      messages,
+      maxTokens: RATE_LIMIT.maxOutputTokens,
+    });
 
-  return result.toDataStreamResponse();
+    return result.toDataStreamResponse();
+  } catch (err: any) {
+    console.error("streamText error:", err?.message || err);
+    return new Response(
+      JSON.stringify({ error: err?.message || "שגיאה לא ידועה" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
 }
