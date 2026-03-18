@@ -2,6 +2,7 @@
 
 import { useChat } from "ai/react";
 import { topics } from "@/lib/topics";
+import { PaperPlane } from "@/components/PaperPlane";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
@@ -18,82 +19,99 @@ export default function ChatPage() {
       body: { topicId },
     });
 
-  // Send opening message automatically
   useEffect(() => {
     if (topic && messages.length === 0) {
       append({
         role: "user",
-        content: `התחל — הנושא: ${topic.title}`,
+        content: `__init__`,
       });
     }
   }, []);
 
-  // Scroll to bottom on new message
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  if (!topic) {
-    return <div className="p-8 text-center">נושא לא נמצא</div>;
-  }
+  if (!topic) return null;
 
-  const assistantMessages = messages.filter((m) => m.role === "assistant");
-  const lastMessage = assistantMessages[assistantMessages.length - 1];
-  const isActionMessage =
-    lastMessage?.content.includes("צעד") ||
-    lastMessage?.content.includes("מכתב") ||
-    lastMessage?.content.includes("טופס") ||
-    lastMessage?.content.includes("חשב");
+  const visibleMessages = messages.filter(
+    (m) => !(m.role === "user" && m.content === "__init__")
+  );
 
   return (
-    <main className="min-h-screen bg-[#f8f7f4] flex flex-col">
+    <main className="min-h-screen flex flex-col" style={{
+      background: `linear-gradient(160deg, ${topic.color}15, #f0f4ff 40%, #ffffff)`
+    }}>
+
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 px-4 py-4 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto flex items-center gap-3">
+      <div className="sticky top-0 z-20 backdrop-blur-md bg-white/80 border-b border-gray-100 shadow-sm">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
           <button
             onClick={() => router.push("/")}
-            className="text-gray-400 hover:text-gray-600 text-sm"
+            className="text-gray-400 hover:text-gray-600 transition-colors text-sm font-medium flex items-center gap-1"
           >
-            → חזרה
+            <span>→</span>
+            <span>חזרה</span>
           </button>
-          <div className="flex items-center gap-2 flex-1">
-            <span className="text-xl">{topic.emoji}</span>
-            <span className="font-semibold text-gray-800">{topic.title}</span>
+
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+            style={{ background: `linear-gradient(135deg, ${topic.color}, ${topic.colorTo})` }}
+          >
+            {topic.emoji}
           </div>
-          <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full">
-            ✈️ B-Pilot
-          </span>
+
+          <div className="flex-1">
+            <p className="font-semibold text-gray-800 text-sm leading-none">{topic.title}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{topic.subtitle}</p>
+          </div>
+
+          <div className="flex items-center gap-1.5 bg-slate-900 text-white text-xs px-3 py-1.5 rounded-full">
+            <PaperPlane size={12} color="#a5b4fc" />
+            <span>B-Pilot</span>
+          </div>
         </div>
       </div>
 
       {/* Messages */}
       <div className="flex-1 max-w-2xl mx-auto w-full px-4 py-6 space-y-4">
-        {messages
-          .filter((m) => !(m.role === "user" && m.content.startsWith("התחל —")))
-          .map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.role === "user" ? "justify-start" : "justify-end"}`}
-            >
-              <div
-                className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
-                  message.role === "user"
-                    ? "bg-blue-600 text-white rounded-tr-sm"
-                    : "bg-white text-gray-800 shadow-sm border border-gray-100 rounded-tl-sm"
-                }`}
-              >
-                {message.content}
+        {visibleMessages.map((message) => (
+          <div
+            key={message.id}
+            className={`flex ${message.role === "user" ? "justify-start" : "justify-end"}`}
+          >
+            {message.role === "assistant" && (
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ml-2 mt-1 self-start"
+                style={{ background: `linear-gradient(135deg, ${topic.color}, ${topic.colorTo})` }}>
+                <PaperPlane size={14} color="#fff" />
               </div>
+            )}
+            <div
+              className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap shadow-sm ${
+                message.role === "user"
+                  ? "text-white rounded-tr-sm"
+                  : "bg-white text-gray-800 border border-gray-100 rounded-tl-sm"
+              }`}
+              style={message.role === "user" ? {
+                background: `linear-gradient(135deg, ${topic.color}, ${topic.colorTo})`,
+              } : {}}
+            >
+              {message.content}
             </div>
-          ))}
+          </div>
+        ))}
 
         {isLoading && (
           <div className="flex justify-end">
-            <div className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100">
-              <div className="flex gap-1">
-                <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ml-2"
+              style={{ background: `linear-gradient(135deg, ${topic.color}, ${topic.colorTo})` }}>
+              <PaperPlane size={14} color="#fff" />
+            </div>
+            <div className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm border border-gray-100">
+              <div className="flex gap-1.5 items-center h-4">
+                <span className="dot-1 w-2 h-2 rounded-full" style={{ background: topic.color }} />
+                <span className="dot-2 w-2 h-2 rounded-full" style={{ background: topic.color }} />
+                <span className="dot-3 w-2 h-2 rounded-full" style={{ background: topic.color }} />
               </div>
             </div>
           </div>
@@ -102,25 +120,24 @@ export default function ChatPage() {
       </div>
 
       {/* Input */}
-      <div className="bg-white border-t border-gray-100 px-4 py-4 sticky bottom-0">
-        <form
-          onSubmit={handleSubmit}
-          className="max-w-2xl mx-auto flex gap-3"
-        >
+      <div className="sticky bottom-0 bg-white/90 backdrop-blur-md border-t border-gray-100 px-4 py-4 shadow-lg">
+        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto flex gap-3">
           <input
             value={input}
             onChange={handleInputChange}
             placeholder="הקלד את תשובתך..."
-            className="flex-1 bg-gray-50 rounded-xl px-4 py-3 text-sm outline-none border border-gray-200 focus:border-blue-300 focus:bg-white transition-colors"
+            className="flex-1 bg-gray-50 rounded-xl px-4 py-3 text-sm outline-none border border-gray-200 focus:border-blue-300 focus:bg-white transition-all"
             disabled={isLoading}
             dir="rtl"
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="bg-blue-600 text-white rounded-xl px-5 py-3 text-sm font-medium hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="text-white rounded-xl px-5 py-3 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:opacity-90 hover:scale-[1.02] flex items-center gap-2"
+            style={{ background: `linear-gradient(135deg, ${topic.color}, ${topic.colorTo})` }}
           >
-            שלח
+            <span>שלח</span>
+            <PaperPlane size={14} color="#fff" />
           </button>
         </form>
       </div>
