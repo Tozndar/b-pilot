@@ -63,7 +63,7 @@ export async function POST(req: Request) {
 
   try {
     const result = streamText({
-      model: google("gemini-1.5-flash-latest"),
+      model: google("gemini-2.0-flash"),
       system: topic.systemPrompt,
       messages,
       maxTokens: RATE_LIMIT.maxOutputTokens,
